@@ -109,7 +109,7 @@ void FTx::Clik ()
       }
 
    // draw post-find
-      m = 4;   if (r+m >= tx.num)  m = tx.num - r;
+      m = 4;   if (r+m >= tx.num)  m = tx.num - r - 1;
       for (o = 0;  o < m;  o++)
          ui->txtShow->insertPlainText (
             StrFmt (s1, "        `s\n", tx.str [r+1+o]));
