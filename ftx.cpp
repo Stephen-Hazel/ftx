@@ -12,7 +12,8 @@ void FTx::DClk (int row, int col)
    if (! fork ()) {
       StrCp (s2, (getenv ("VISUAL") == nullptr) ? CC("/opt/app/ned")
                                                 : getenv ("VISUAL"));
-      system (StrFmt (s3, "`s '`s/`s' `s", s2, _dir, s, _s));   exit (0);
+      if (-1 == system (StrFmt (s3, "`s '`s/`s' `s", s2, _dir, s, _s)))  {};   
+      exit (0);
    }
 }
 
@@ -25,11 +26,11 @@ void FTx::Clik ()
   bool  go;
   StrArr tx (CC("txt"), 200000, 100000*sizeof (TStr));
   QColor bl (CC("#000000")), pi (CC("#FF0080"));
-   row = SC(ulong,ui->tblList->currentRow ());
+   row = ui->tblList->currentRow ();
 //DBG("Clik bgn r=`d", row);
    if (row == SC(ulong,-1))  return;
 
-   StrCp (s2, UnQS (ui->tblList->item (SC(int,row), 0)->text ()));
+   StrCp (s2, UnQS (ui->tblList->item (row, 0)->text ()));
    StrCp (s, _dir);   StrAp (s, CC("/"));   StrAp (s, s2);
    sln  = StrLn (_s);
 
@@ -67,7 +68,7 @@ void FTx::Clik ()
       StrFmt (s1, "`>6d  `s\n", r+1, tr);
       tr = & s1 [8];   psp = s1;
       while ((sp = StrSt (tr, _s))) {  // hilite match spots
-         MemCp (buf, psp, SC(ulong,sp-psp));   buf [sp-psp] = '\0';
+         MemCp (buf, psp, sp-psp);   buf [sp-psp] = '\0';
          ui->txtShow->insertPlainText (buf);   ui->txtShow->setTextColor (pi);
          MemCp (buf, sp, sln);   buf [sln] = '\0';
          ui->txtShow->insertPlainText (buf);   ui->txtShow->setTextColor (bl);
@@ -96,7 +97,7 @@ void FTx::Clik ()
             StrFmt (s1, "`>6d  `s\n", r+1, tr);
             tr = & s1 [8];   psp = s1;
             while ((sp = StrSt (tr, _s))) {      // hilite match spots
-               MemCp (buf, psp, SC(ulong,sp-psp));   buf [sp-psp] = '\0';
+               MemCp (buf, psp, sp-psp);   buf [sp-psp] = '\0';
                ui->txtShow->insertPlainText (buf);
                ui->txtShow->setTextColor (pi);
                MemCp (buf, sp, sln);   buf [sln] = '\0';
@@ -117,7 +118,7 @@ void FTx::Clik ()
 }
 
 
-static char Buf [8*1024*1024];         // buffer a file to search for str _s
+char Buf [8*1024*1024];                // buffer a file to search for str _s
 
 bool DoDir (void *ptr, char dfx, char *fn)
 // find any files and put em in _tb
@@ -131,14 +132,14 @@ bool DoDir (void *ptr, char dfx, char *fn)
    if (dfx != 'f')  return false;
   File  f;
   ulong ln = f.Load (fn, Buf, sizeof (Buf));
-  FTx *me = SC(FTx *,ptr);
+  FTx *me = (FTx *)ptr;
    if (MemSt (Buf, me->_s, ln))  me->_tb->Add (fn);
    return false;
 }
 
 
 static int TblCmp (void *p1, void *p2)
-{  return StrCm (*(SC(char **,p1)), *(SC(char **,p2)));  }
+{  return StrCm (*((char **)p1), *((char **)p2));  }
 
 
 void FTx::Find ()
@@ -156,13 +157,13 @@ DBG("found `d", tb.num);
    Sort (tb.str, tb.num, sizeof (tb.str [0]), TblCmp);
    ui->tblList->hide ();
    ui->tblList->clearContents ();
-   ui->tblList->setRowCount (SC(int,tb.num));
+   ui->tblList->setRowCount (tb.num);
   QTableWidgetItem *it;
    for (ulong i = 0;  i < tb.num;  i++) {
-      it = ui->tblList->item (SC(int,i), 0);
+      it = ui->tblList->item (i, 0);
       if (! it) {
          it = new QTableWidgetItem;
-         ui->tblList->setItem (SC(int,i), 0, it);
+         ui->tblList->setItem (i, 0, it);
       }
       it->setText (& tb.str [i][StrLn (_dir)+1]);
    }
